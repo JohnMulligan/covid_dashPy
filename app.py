@@ -29,9 +29,7 @@ inverse_state_abbv_map={state_abbv_map[k]:k for k in state_abbv_map}
 #2. format & extract dates
 #https://pandas.pydata.org/docs/user_guide/timeseries.html
 df['Week Ending Date'] = pd.to_datetime(df['Week Ending Date'])
-
 df=df.sort_values("Week Ending Date")
-
 daterange=list(pd.unique(df['Week Ending Date']))
 
 #3. PRELIM filtering
@@ -75,24 +73,22 @@ app.layout = dbc.Container(
 			[	
 				html.A("An adaptation of the CDC's COVID-19 excess mortality dashboard.",href="https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm")
 			],
-			style={"height": "3vh"}
 		),
 		dbc.Row(
 			[
-				dbc.Col(controls,md=4),
-				dbc.Col(dcc.Graph(id="choropleth_map"),md=8)
+				dbc.Col(controls,md=6),
+				dbc.Col(dcc.Graph(id="choropleth_map"),md=6)
 			],
 			align="center",
-			style={"height": "43vh"}
 		),
 		dbc.Row(
 			[
 				dbc.Col(dcc.Graph(id="graph"),md=12)
 			],
 			align="center",
-			style={"height": "43vh"}
 		)
-	]
+	],
+	fluid=True
 )
 
 
@@ -104,23 +100,22 @@ app.layout = dbc.Container(
 	Input('choropleth_map', 'selectedData'),
 	Input('outcomes_radio','value')
     )
-def line_graph(start_date,end_date,clickData,outcome):
+def line_graph(start_date,end_date,selectedData,outcome):
 	
 	filtered=df[df['Outcome']==outcome]
 	filtered=filtered[filtered['Week Ending Date']>=start_date]
 	filtered=filtered[filtered['Week Ending Date']<=end_date]
 	
-	if clickData is not None:
-	
-		selectedstates=[inverse_state_abbv_map[p['location']] for p in clickData['points']]
-		selectedstates_strings=selectedstates
-		
+	if selectedData is not None:
+		selectedstates=[inverse_state_abbv_map[p['location']] for p in selectedData['points']]
 	else:
-		
 		selectedstates=["United States"]
-		selectedstates_strings=["the United States"]
 	
-	
+	if selectedstates==["United States"]:
+		selectedstates_string="the United States"
+	else:
+		#a nice list to comma-separated text converter, with and but without oxford comma https://stackoverflow.com/a/19839338
+		selectedstates_string=", ".join(selectedstates[:-2] + [" and ".join(selectedstates[-2:])])
 	
 	df2=filtered[filtered['State'].isin(selectedstates)]
 	df2=df2[df2['Outcome']==outcome]
@@ -134,20 +129,12 @@ def line_graph(start_date,end_date,clickData,outcome):
 		df2=df2.groupby("Week Ending Date").sum()
 		alarmlabels=[]
 		excess_alarms_text=""
-		selectedstates_strings.insert(-1,"and")
-		selectedstates_string=", ".join(selectedstates_strings)
-		selectedstates_string=re.sub(", and, (?=[A-Z])",", and ",selectedstates_string)
 	else:
 		alarmlabels=df2["Alarm"]
 		excessweekscount=df2["Exceeds Threshold"].sum()
 		total_weeks=len(alarmlabels)
 		excess_alarms_text="%s of %s weeks in this time period exceeded the 95 percent CI upper bound for predicted mortality." %(str(excessweekscount),str(total_weeks))
-		
 		excess_alarms_text = excess_alarms_text
-		
-		selectedstates_string=selectedstates_strings[0]
-	if len(selectedstates)==3:
-		selectedstates_string="%s and %s" %(selectedstates_strings[0],selectedstates_strings[2])
 
 	df2.reset_index(inplace=True)	
 	
