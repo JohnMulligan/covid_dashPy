@@ -45,7 +45,7 @@ controls=dbc.Card(
 	[
 		html.Div(
 			dcc.DatePickerRange(
-				id='daterangeslider',
+				id='daterangepicker',
 				min_date_allowed=pd.Timestamp(min(daterange)),
 				max_date_allowed=pd.Timestamp(max(daterange)),
 				start_date=pd.Timestamp(np.datetime64('2020-01-01')),
@@ -74,29 +74,33 @@ app.layout = dbc.Container(
 		dbc.Row(
 			[	
 				html.A("An adaptation of the CDC's COVID-19 excess mortality dashboard.",href="https://www.cdc.gov/nchs/nvss/vsrr/covid19/excess_deaths.htm")
-			]
+			],
+			style={"height": "3vh"}
 		),
 		dbc.Row(
 			[
 				dbc.Col(controls,md=4),
 				dbc.Col(dcc.Graph(id="choropleth_map"),md=8)
-			],align="center"
+			],
+			align="center",
+			style={"height": "43vh"}
 		),
 		dbc.Row(
 			[
-				dbc.Col(dcc.Graph(id="graph"))
-			]
+				dbc.Col(dcc.Graph(id="graph"),md=12)
+			],
+			align="center",
+			style={"height": "43vh"}
 		)
-	],
-	fluid=True
+	]
 )
 
 
 @app.callback(
     Output('graph', 'figure'),
     Output('para','children'),
-	Input('daterangeslider', 'start_date'),
-	Input('daterangeslider', 'end_date'),
+	Input('daterangepicker', 'start_date'),
+	Input('daterangepicker', 'end_date'),
 	Input('choropleth_map', 'selectedData'),
 	Input('outcomes_radio','value')
     )
@@ -183,8 +187,8 @@ def line_graph(start_date,end_date,clickData,outcome):
 
 @app.callback(
 		Output('choropleth_map', 'figure'),
-		Input('daterangeslider', 'start_date'),
-		Input('daterangeslider', 'end_date'),
+		Input('daterangepicker', 'start_date'),
+		Input('daterangepicker', 'end_date'),
 		Input('outcomes_radio','value')
 	)
 def update_output(start_date,end_date,outcome):	
