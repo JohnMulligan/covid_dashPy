@@ -208,7 +208,7 @@ def line_graph(start_date,end_date,selectedData,outcome):
 	start_year=start_date_str[0:4]
 	end_year=end_date_str[0:4]
 	
-	excess_mortality_text="Between %s and %s, %s more people died than would have been expected in %s, based on historical averages." %(start_date_str,end_date_str,f"{total_excess:,}",selectedstates_string)
+	excess_mortality_text="Between %s and %s, %s more people died (%s) than would have been expected in %s, based on historical averages." %(start_date_str,end_date_str,f"{total_excess:,}",outcome.lower(),selectedstates_string)
 	
 	output_text = ' '.join([excess_mortality_text,excess_alarms_text])
 	
